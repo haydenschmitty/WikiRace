@@ -8,7 +8,7 @@ A party game for desktop browsers. Everyone starts on the same Wikipedia article
 
 1. One person creates a room and shares the four-letter code (or the invite link).
 2. Everyone else joins from their own computer. Up to 12 players.
-3. Each round picks a random start article and a random target from a pool of about 730 well-known articles.
+3. Each round picks a random start article and a random target from a pool of about 1,550 well-known articles.
 4. Click links until you land on the target. An overlay shows the timer and every player's click count as it happens.
 5. After each round you see everyone's clicks, time, score and the path they took.
 6. After the last round there is an overall winner, plus awards for fastest and fewest clicks.
