@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WikiRace</title>
+<meta name="description" content="A party game for desktop browsers. Race your friends from one Wikipedia article to another using only the links.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232b50e8'/%3E%3Cpath d='M9 5v20l5.6-5 3.6 8.2 3.4-1.5-3.5-8 7.4-.2z' fill='%23ffdd33' stroke='%230d1233' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Lilita+One&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="wall" aria-hidden="true"></div>
+
+<main id="home" class="screen">
+  <h1 class="logo">WikiRace<svg class="logoCur" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2.5v17l4.7-4.2 3 7 2.9-1.3-3-6.8 6.3-.2z" fill="#fff" stroke="#0d1233" stroke-width="1.6" stroke-linejoin="round"/></svg></h1>
+  <p class="tagline">Race your friends from one Wikipedia article to another, using only the links.</p>
+  <form class="card enter" id="enter" autocomplete="off">
+    <label class="field">Your name
+      <input id="name" maxlength="20" required placeholder="What should we call you?">
+    </label>
+    <div class="ways">
+      <button class="btn" type="submit" id="createBtn" value="create">Create a room</button>
+      <span class="or">or</span>
+      <div class="join">
+        <input id="code" maxlength="4" placeholder="Code" aria-label="Room code" autocapitalize="characters">
+        <button class="btn white" type="submit" id="joinBtn" value="join">Join</button>
+      </div>
+    </div>
+    <p class="err" id="homeErr" role="alert"></p>
+  </form>
+  <p class="foot">Articles load live from Wikipedia and are available under the Creative Commons Attribution-ShareAlike 4.0 License. WikiRace is not affiliated with Wikipedia or the Wikimedia Foundation.</p>
+</main>
+
+<main id="lobby" class="screen" hidden>
+  <div class="logo sm">WikiRace</div>
+  <div class="lobbyGrid">
+    <section>
+      <p class="kicker">Room code</p>
+      <div class="tiles" id="lobbyCode" aria-label="Room code"></div>
+      <button class="btn white" id="copyBtn" type="button">Copy invite link</button>
+      <h2 class="h" id="peopleHead"></h2>
+      <ul class="tags" id="lobbyPeople"></ul>
+    </section>
+    <section>
+      <div class="card settings">
+        <h2>Game settings</h2>
+        <label class="field">Rounds
+          <input id="setRounds" type="number" min="1" max="10" step="1">
+        </label>
+        <label class="field">Time limit per round
+          <select id="setLimit">
+            <option value="60">1 minute</option>
+            <option value="120">2 minutes</option>
+            <option value="180">3 minutes</option>
+            <option value="300">5 minutes</option>
+            <option value="600">10 minutes</option>
+          </select>
+        </label>
+        <label class="field">Points per second
+          <input id="setFactor" type="number" min="0" max="2" step="0.05">
+        </label>
+        <p class="hint" id="lobbyRule"></p>
+      </div>
+      <div class="actions">
+        <button class="btn big" id="startBtn" type="button">Start the race</button>
+        <p class="wait" id="lobbyWait"></p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<main id="game" hidden>
+  <header class="bar">
+    <span class="brand">WikiRace</span>
+    <div class="route"><u id="gStart"></u><span aria-hidden="true">&rarr;</span><mark id="gTarget"></mark></div>
+    <span class="pill" id="gRound"></span>
+    <button class="btn sm white" id="endBtn" type="button">End round</button>
+    <div id="loadbar" hidden></div>
+  </header>
+  <div id="article"></div>
+  <aside id="hud" aria-label="Race status">
+    <div id="timer" role="timer">0:00.0</div>
+    <div class="limit"><i id="limitFill"></i></div>
+    <ol id="hudPlayers"></ol>
+  </aside>
+  <div id="banner" role="status" hidden></div>
+  <div id="countdown" hidden>
+    <span class="pill" id="cdRound"></span>
+    <div class="cdRoute">
+      <div class="cdCard"><small>Start at</small><b id="cdStart"></b></div>
+      <svg class="cdArrow" viewBox="0 0 110 44" aria-hidden="true"><path class="dash" d="M4 22h84"/><path d="M82 8l18 14-18 14"/></svg>
+      <div class="cdCard target"><small>Get to</small><b id="cdTarget"></b><i id="cdBlurb"></i></div>
+    </div>
+    <div id="cdNum" aria-live="polite"></div>
+  </div>
+</main>
+
+<main id="results" class="screen" hidden>
+  <div class="logo sm">WikiRace</div>
+  <h1 class="title" id="resTitle"></h1>
+  <p class="routeLine" id="resRoute"></p>
+  <ol class="rows" id="resBody"></ol>
+  <p class="rule" id="resRule"></p>
+  <div class="actions">
+    <button class="btn big" id="nextBtn" type="button"></button>
+    <p class="wait" id="resWait"></p>
+  </div>
+</main>
+
+<main id="final" class="screen" hidden>
+  <div class="logo sm">WikiRace</div>
+  <div class="winner">
+    <svg class="crown" viewBox="0 0 96 72" aria-hidden="true"><path d="M8 62h80l6-44-24 17L48 6 26 35 2 18z" fill="#ffdd33" stroke="#0d1233" stroke-width="5" stroke-linejoin="round"/><circle cx="48" cy="46" r="6" fill="#ff5a8a" stroke="#0d1233" stroke-width="4"/></svg>
+    <h1 class="title big" id="finTitle"></h1>
+  </div>
+  <p class="sub" id="finSub"></p>
+  <div class="awards" id="finSupers"></div>
+  <ol class="rows" id="finBody"></ol>
+  <p class="rule" id="finRule"></p>
+  <div class="actions">
+    <button class="btn big" id="againBtn" type="button">Play again</button>
+    <p class="wait" id="finWait"></p>
+  </div>
+</main>
+
+<button id="mute" type="button"></button>
+<div id="offline" role="alert" hidden></div>
+<div id="toast" role="status" hidden></div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="pool.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
